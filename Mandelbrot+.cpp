@@ -8,14 +8,14 @@
 
 int main()
 {
-    int wide  = 400;
-    int hight = 400;
+    int wide  = 600;
+    int hight = 600;
     float x_center = wide / 2;
     float y_center = hight / 2;
     float R = 10000.f;
     float scale = 100.f;
 
-    sf::RenderWindow window(sf::VideoMode(wide, hight), "Mondelbrot");
+    sf::RenderWindow window(sf::VideoMode(wide, hight), "Mandelbrot");
     sf::VertexArray pointmap(sf::Points, wide * hight);
     sf::Text text;
     sf::Font font;
@@ -87,7 +87,7 @@ int main()
                     pointmap[arr_index].position = sf::Vector2f(point_number_x + i, point_number_y);
                     if(N[i] < 256)
                     {
-                        pointmap[arr_index].color = sf::Color(N[i], N[i] % 2 * 64, 255 - N[i]);
+                        pointmap[arr_index].color = sf::Color(N[i], N[i] % 4 * 64, 255 - N[i]);
                     }
                     else
                     {

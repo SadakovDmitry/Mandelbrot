@@ -12,7 +12,7 @@
 
 union Iterations
 {
-    __m128i reg;
+    __m256i reg;
     int arr[4];
 };
 
@@ -23,9 +23,9 @@ int main()
     int   hight    = 600;
     float x_center = wide  / 2;
     float y_center = hight / 2;
-    __m128 R       = _mm_set1_ps (10000.f);
-    __m128 scale   = _mm_set1_ps (100.f);
-    __m128 _3210   = _mm_set_ps  (3.f, 2.f, 1.f, 0.f);
+    __m256 R       = _mm256_set1_ps (10000.f);
+    __m256 scale   = _mm256_set1_ps (100.f);
+    __m256 _3210   = _mm256_set_ps  (7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
 
     sf::RenderWindow window(sf::VideoMode(wide, hight), "Mandelbrot");
     sf::VertexArray pointmap(sf::Points, wide * hight);
@@ -52,8 +52,8 @@ int main()
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up   ))  y_center += 10;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down ))  y_center -= 10;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))  x_center -= 10;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))  scale     = _mm_mul_ps(scale, _mm_set_ps1(1.5f));
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Dash))   scale     = _mm_div_ps(scale, _mm_set_ps1(1.5f));
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))  scale     = _mm256_mul_ps(scale, _mm256_set1_ps(1.5f));
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Dash))   scale     = _mm256_div_ps(scale, _mm256_set1_ps(1.5f));
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) window.close();
             if (event.type == sf::Event::Closed)
             {
@@ -68,23 +68,23 @@ int main()
             {
                 float x_0 = (float) (point_number_x - x_center);
                 float y_0 = (float) (point_number_y - y_center);
-                __m128 arr_x_0 = _mm_div_ps( _mm_add_ps( _mm_set_ps1(x_0), _3210 ), scale );
-                __m128 arr_y_0 = _mm_div_ps( _mm_set_ps1(y_0), scale );
-                __m128 x_n     = arr_x_0;
-                __m128 y_n     = arr_y_0;
+                __m256 arr_x_0 = _mm256_div_ps( _mm256_add_ps( _mm256_set1_ps(x_0), _3210 ), scale );
+                __m256 arr_y_0 = _mm256_div_ps( _mm256_set1_ps(y_0), scale );
+                __m256 x_n     = arr_x_0;
+                __m256 y_n     = arr_y_0;
 
-                iter.reg = _mm_set1_epi32(0);
+                iter.reg = _mm256_set1_epi32(0);
                 for (int n = 0 ; n < 256; n++)
                 {
-                    __m128 res_cmp = _mm_cmple_ps(_mm_add_ps( _mm_mul_ps( x_n, x_n ), _mm_mul_ps( y_n, y_n )), R);
-                    int mask       = _mm_movemask_ps(res_cmp);
+                    __m256 res_cmp = _mm256_cmp_ps(_mm256_add_ps( _mm256_mul_ps( x_n, x_n ), _mm256_mul_ps( y_n, y_n )), R, _CMP_LT_OS);
+                    int mask       = _mm256_movemask_ps(res_cmp);
 
                     if(!mask) break;
 
-                    iter.reg = _mm_add_epi32( iter.reg, _mm_cvtps_epi32( _mm_and_ps( res_cmp, _mm_set_ps1( 1.f ))));
-                    __m128 temp = x_n;
-                    x_n = _mm_add_ps( _mm_sub_ps( _mm_mul_ps( x_n, x_n ) , _mm_mul_ps( y_n, y_n )) , arr_x_0);
-                    y_n = _mm_add_ps( _mm_add_ps( _mm_mul_ps( temp, y_n ), _mm_mul_ps( temp, y_n )), arr_y_0);
+                    iter.reg = _mm256_add_epi32( iter.reg, _mm256_cvtps_epi32( _mm256_and_ps( res_cmp, _mm256_set1_ps( 1.f ))));
+                    __m256 temp = x_n;
+                    x_n = _mm256_add_ps( _mm256_sub_ps( _mm256_mul_ps( x_n, x_n ) , _mm256_mul_ps( y_n, y_n )) , arr_x_0);
+                    y_n = _mm256_add_ps( _mm256_add_ps( _mm256_mul_ps( temp, y_n ), _mm256_mul_ps( temp, y_n )), arr_y_0);
 
                 }
                 for (int i = 0; i < 4; i++)
