@@ -114,7 +114,7 @@ void Set_Pixel_Arr(union Iterations* iter, sf::VertexArray &pointmap, float x_ce
                 pointmap[pixel_index].position  = sf::Vector2f(point_number_x + i, point_number_y);
 
                 if(iter -> arr[i] < 256)
-                    pointmap[pixel_index].color = sf::Color(iter -> arr[i], iter -> arr[i] % 4 * 64, 255 - iter -> arr[i]);
+                    pointmap[pixel_index].color = sf::Color(iter -> arr[i], iter -> arr[i] % 8 * 32, 255 - iter -> arr[i]);
                 else
                     pointmap[pixel_index].color = sf::Color::Black;
             }
