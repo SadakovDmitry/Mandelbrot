@@ -40,8 +40,8 @@ int main()
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up   ))  y_center += 10;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down ))  y_center -= 10;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))  x_center -= 10;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))  scale    *= 1.5;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Dash ))  scale    /= 1.5;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))  scale    *= 1.2;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Dash ))  scale    /= 1.2;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) window.close();
             if (event.type == sf::Event::Closed)
             {
@@ -87,7 +87,7 @@ int main()
                     pointmap[arr_index].position = sf::Vector2f(point_number_x + i, point_number_y);
                     if(N[i] < 256)
                     {
-                        pointmap[arr_index].color = sf::Color(N[i], N[i] % 4 * 64, 255 - N[i]);
+                        pointmap[arr_index].color = sf::Color(N[i], N[i] % 8 * 32, 255 - N[i]);
                     }
                     else
                     {

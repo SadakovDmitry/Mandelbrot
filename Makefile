@@ -15,6 +15,7 @@ clean :
 		rm *.o $(TARGET++)
 		rm *.o $(TARGET256++)
 
+
 comp :
 	g++ -O3 -c Mandelbrot.cpp -o mandelbrot.o
 	g++ mandelbrot.o -o $(TARGET) -lsfml-graphics -lsfml-window -lsfml-system -fpermissive
