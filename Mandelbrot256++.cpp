@@ -13,7 +13,7 @@
 union Iterations
 {
     __m256i reg;
-    int arr[4];
+    int arr[8];
 };
 
 int main()
@@ -25,7 +25,7 @@ int main()
     float y_center = hight / 2;
     __m256 R       = _mm256_set1_ps (10000.f);
     __m256 scale   = _mm256_set1_ps (100.f);
-    __m256 _3210   = _mm256_set_ps  (7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
+    __m256 _76543210   = _mm256_set_ps  (7.f, 6.f, 5.f, 4.f, 3.f, 2.f, 1.f, 0.f);
 
     sf::RenderWindow window(sf::VideoMode(wide, hight), "Mandelbrot");
     sf::VertexArray pointmap(sf::Points, wide * hight);
@@ -52,8 +52,8 @@ int main()
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up   ))  y_center += 10;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down ))  y_center -= 10;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))  x_center -= 10;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))  scale     = _mm256_mul_ps(scale, _mm256_set1_ps(1.5f));
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Dash))   scale     = _mm256_div_ps(scale, _mm256_set1_ps(1.5f));
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))  scale     = _mm256_mul_ps(scale, _mm256_set1_ps(1.2f));
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Dash))   scale     = _mm256_div_ps(scale, _mm256_set1_ps(1.2f));
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) window.close();
             if (event.type == sf::Event::Closed)
             {
@@ -64,11 +64,11 @@ int main()
 
         for (int point_number_y = 0; point_number_y < wide; point_number_y++)
         {
-            for (int point_number_x = 0; point_number_x < hight; point_number_x += 4)
+            for (int point_number_x = 0; point_number_x < hight; point_number_x += 8)
             {
                 float x_0 = (float) (point_number_x - x_center);
                 float y_0 = (float) (point_number_y - y_center);
-                __m256 arr_x_0 = _mm256_div_ps( _mm256_add_ps( _mm256_set1_ps(x_0), _3210 ), scale );
+                __m256 arr_x_0 = _mm256_div_ps( _mm256_add_ps( _mm256_set1_ps(x_0), _76543210 ), scale );
                 __m256 arr_y_0 = _mm256_div_ps( _mm256_set1_ps(y_0), scale );
                 __m256 x_n     = arr_x_0;
                 __m256 y_n     = arr_y_0;
@@ -87,13 +87,13 @@ int main()
                     y_n = _mm256_add_ps( _mm256_add_ps( _mm256_mul_ps( temp, y_n ), _mm256_mul_ps( temp, y_n )), arr_y_0);
 
                 }
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     int pixel_index = point_number_x + wide * point_number_y + i;
                     pointmap[pixel_index].position = sf::Vector2f(point_number_x + i, point_number_y);
                     if((iter.arr)[i] < 256)
                     {
-                        pointmap[pixel_index].color = sf::Color((iter.arr)[i], (iter.arr)[i] % 4 * 64, 255 - (iter.arr)[i]);
+                        pointmap[pixel_index].color = sf::Color((iter.arr)[i], (iter.arr)[i] % 8 * 32, 255 - (iter.arr)[i]);
                     }
                     else
                     {
