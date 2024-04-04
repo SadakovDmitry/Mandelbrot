@@ -21,15 +21,15 @@ comp :
 	g++ mandelbrot.o -o $(TARGET) -lsfml-graphics -lsfml-window -lsfml-system -fpermissive
 
 comp+ :
-	g++ -O3 -c Mandelbrot+.cpp -o mandelbrot+.o
+	g++ -O2 -c Mandelbrot+.cpp -o mandelbrot+.o
 	g++ mandelbrot+.o -o $(TARGET+) -lsfml-graphics -lsfml-window -lsfml-system -fpermissive
 
-comp++ :
-	g++ -O3 -mavx -mavx2 -c Mandelbrot++.cpp -o mandelbrot++.o
+comp128++ :
+	g++ -O2 -mavx -mavx2 -c Mandelbrot++.cpp -o mandelbrot++.o
 	g++ mandelbrot++.o -o $(TARGET++) -lsfml-graphics -lsfml-window -lsfml-system -fpermissive
 
 comp256++ :
-	g++ -O3 -mavx -mavx2 -c Mandelbrot256++.cpp -o mandelbrot256++.o
+	g++ -O2 -mavx -mavx2 -c Mandelbrot256++.cpp -o mandelbrot256++.o
 	g++ mandelbrot256++.o -o $(TARGET256++) -lsfml-graphics -lsfml-window -lsfml-system -fpermissive
 
 run : $(TARGET)
@@ -38,7 +38,7 @@ run : $(TARGET)
 run+ : $(TARGET+)
 		./$(TARGET+)
 
-run++ : $(TARGET++)
+run128++ : $(TARGET++)
 		./$(TARGET++)
 
 run256++ : $(TARGET256++)
