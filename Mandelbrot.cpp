@@ -9,43 +9,57 @@ const int WIDTH  = 800;
 const int HEIGHT = 600;
 const float R   = 10000.f;
 
-void Show_Picture_in_Window(sf::RenderWindow &window, sf::Text &text, sf::VertexArray &pointmap);
-void Set_Mandelbrot_Pixel_Arr( sf::VertexArray &pointmap, float x_center, float y_center, float scale);
-void Print_FPS(sf::Text &text, float delta_time, char* str, FILE* file);
-void Check_Keyboard(sf::RenderWindow &window , float* x_center, float* y_center, float* scale);
+void Show_picture_in_window(sf::RenderWindow &window, sf::Text &text, unsigned int* pix_arr, sf::Sprite &sprite, sf::Texture &texture);
+void Set_mandelbrot_pixel_arr( unsigned int* pix_arr, float x_center, float y_center, float scale);
+void Print_fps(sf::Text &text, float delta_time, char* str, FILE* file);
+void Check_keyboard(sf::RenderWindow &window , float* x_center, float* y_center, float* scale);
 void Calculate_iters(float x_0, float y_0, int* iter, float scale);
-char* Set_Text_Format(sf::Text &text, sf::Font &font);
+char* Set_text_format(sf::Text &text, sf::Font &font);
 
 int main()
 {
     float x_center = WIDTH / 2;
     float y_center = HEIGHT / 2;
-    float scale = 100.f;
+    float scale = 120.f;
 
+    #ifndef TESTING_MODE
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Mandelbrot");
-    sf::VertexArray pointmap(sf::Points, WIDTH * HEIGHT);
-    sf::Text text;
-    sf::Font font;
-    sf::Clock clock;
-    char* str = Set_Text_Format(text, font);
+    #endif
+    sf::Text    text;
+    sf::Font    font;
+    sf::Clock   clock;
+    sf::Sprite  sprite;
+    sf::Texture texture;
+    texture.create(WIDTH, HEIGHT);
+    sprite.setTexture(texture);
+
+    char* str = Set_text_format(text, font);
+    unsigned int* pix_arr = (unsigned int*) calloc(WIDTH * HEIGHT, sizeof(unsigned int));
     FILE* file_out = fopen("tests.txt", "w");
 
+    #ifndef TESTING_MODE
     while(window.isOpen())
+    #else
+    for (int k = 0; k < 100; k++)
+    #endif
     {
-        Check_Keyboard(window , &x_center, &y_center, &scale);
+        #ifndef TESTING_MODE
+        Check_keyboard(window , &x_center, &y_center, &scale);
+        #endif
 
         float time_start = clock.restart().asSeconds();
-        Set_Mandelbrot_Pixel_Arr(pointmap, x_center, y_center, scale);
+        Set_mandelbrot_pixel_arr(pix_arr, x_center, y_center, scale);
         float delta_time = clock.restart().asSeconds();
-        Print_FPS(text, delta_time, str, file_out);
+        Print_fps(text, delta_time, str, file_out);
 
-        Show_Picture_in_Window(window, text, pointmap);
+        #ifndef TESTING_MODE
+        Show_picture_in_window(window, text, pix_arr, sprite, texture);
+        #endif
     }
     fclose(file_out);
-    printf("end\n");
 }
 
-char* Set_Text_Format(sf::Text &text, sf::Font &font)
+char* Set_text_format(sf::Text &text, sf::Font &font)
 {
     font.loadFromFile("Tranrbi.ttf");
     text.setFont(font);
@@ -74,7 +88,7 @@ void Calculate_iters(float x_0, float y_0, int* iter, float scale)
     }
 }
 
-void Check_Keyboard(sf::RenderWindow &window , float* x_center, float* y_center, float* scale)
+void Check_keyboard(sf::RenderWindow &window , float* x_center, float* y_center, float* scale)
 {
     sf::Event event;
     while (window.pollEvent(event))
@@ -104,7 +118,7 @@ void Check_Keyboard(sf::RenderWindow &window , float* x_center, float* y_center,
     }
 }
 
-void Set_Mandelbrot_Pixel_Arr(sf::VertexArray &pointmap, float x_center, float y_center, float scale)
+void Set_mandelbrot_pixel_arr(unsigned int* pix_arr, float x_center, float y_center, float scale)
 {
     for (int point_number_y = 0; point_number_y < HEIGHT; point_number_y++)
     {
@@ -116,28 +130,33 @@ void Set_Mandelbrot_Pixel_Arr(sf::VertexArray &pointmap, float x_center, float y
             int iter = 0;
             Calculate_iters(x_0, y_0, &iter, scale);
 
-            int arr_index = point_number_x + WIDTH * point_number_y;
-            pointmap[arr_index].position = sf::Vector2f(point_number_x, point_number_y);
+            //#ifndef TESTING_MODE
+            int pixel_index = point_number_x + WIDTH * point_number_y;
             if(iter < 256)
-                pointmap[arr_index].color = sf::Color(iter, iter % 8 * 32, 255 - iter);
-            else
-                pointmap[arr_index].color = sf::Color::Black;
+                    pix_arr[pixel_index] = iter | ((iter % 8 * 32) << 8) | ((255 - iter) << 16) | (255 << 24);
+                else
+                    pix_arr[pixel_index] = (255 << 24);
+            //#endif
         }
     }
 }
 
-void Print_FPS(sf::Text &text, float delta_time, char* str, FILE* file)
+void Print_fps(sf::Text &text, float delta_time, char* str, FILE* file)
 {
     float fps = 1 / delta_time;
+    #ifndef TESTING_MODE
     sprintf(str, "fps: %f", fps);
-    fprintf(file, "%f\n", fps);
     text.setString(str);
+    #else
+    fprintf(file, "%f\n", fps);
+    #endif
 }
 
-void Show_Picture_in_Window(sf::RenderWindow &window, sf::Text &text, sf::VertexArray &pointmap)
+void Show_picture_in_window(sf::RenderWindow &window, sf::Text &text, unsigned int* pix_arr, sf::Sprite &sprite, sf::Texture &texture)
 {
     window.clear(sf::Color::Black);
-    window.draw(pointmap);
+    texture.update((uint8_t*) pix_arr);
+    window.draw(sprite);
     window.draw(text);
     window.display();
 }

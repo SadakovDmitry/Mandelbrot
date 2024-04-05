@@ -6,16 +6,16 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Font.hpp>
 
-const int WIDTH    = 600;
+const int WIDTH    = 800;
 const int HEIGHT   = 600;
 const float RADIUS = 10000.f;
 
-void Show_Picture_in_Window(sf::RenderWindow &window, sf::Text &text, sf::VertexArray &pointmap);
-void Set_Mandelbrot_Pixel_Arr( sf::VertexArray &pointmap, float x_center, float y_center, float scale, float shift_x, float shift_y);
-void Print_FPS(sf::Text &text, float delta_time, char* str, FILE* file);
-void Check_Keyboard(sf::RenderWindow &window , float* shift_x, float* shift_y, float* scale);
+void Show_picture_in_window(sf::RenderWindow &window, sf::Text &text, unsigned int* pix_arr, sf::Sprite &sprite, sf::Texture &texture);
+void Set_mandelbrot_pixel_arr( unsigned int* pix_arr, float x_center, float y_center, float scale, float shift_x, float shift_y);
+void Print_fps(sf::Text &text, float delta_time, char* str, FILE* file);
+void Check_keyboard(sf::RenderWindow &window , float* shift_x, float* shift_y, float* scale);
 void Calculate_iters(float x_0, float y_0, int* iter, float scale, float shift_x, float shift_y);
-char* Set_Text_Format(sf::Text &text, sf::Font &font);
+char* Set_text_format(sf::Text &text, sf::Font &font);
 
 int main()
 {
@@ -23,32 +23,46 @@ int main()
     const float y_center = HEIGHT / 2;
     float shift_x  = 0;
     float shift_y  = 0;
-    float scale = 100.f;
+    float scale = 120.f;
 
+    #ifndef TESTING_MODE
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "Mandelbrot");
-    sf::VertexArray pointmap(sf::Points, WIDTH * HEIGHT);
-    sf::Text text;
-    sf::Font font;
-    sf::Clock clock;
-    char* str = Set_Text_Format(text, font);
+    #endif
+    sf::Text    text;
+    sf::Font    font;
+    sf::Clock   clock;
+    sf::Sprite  sprite;
+    sf::Texture texture;
+    texture.create(WIDTH, HEIGHT);
+    sprite.setTexture(texture);
+
+    char* str = Set_text_format(text, font);
+    unsigned int* pix_arr = (unsigned int*) calloc(WIDTH * HEIGHT, sizeof(unsigned int));
     FILE* file_out = fopen("tests.txt", "w");
 
+    #ifndef TESTING_MODE
     while(window.isOpen())
+    #else
+    for (int k = 0; k < 100; k++)
+    #endif
     {
-        Check_Keyboard(window , &shift_x, &shift_y, &scale);
+        #ifndef TESTING_MODE
+        Check_keyboard(window , &shift_x, &shift_y, &scale);
+        #endif
 
         float time_start = clock.restart().asSeconds();
-        Set_Mandelbrot_Pixel_Arr(pointmap, x_center, y_center, scale, shift_x, shift_y);
+        Set_mandelbrot_pixel_arr(pix_arr, x_center, y_center, scale, shift_x, shift_y);
         float delta_time = clock.restart().asSeconds();
-        Print_FPS(text, delta_time, str, file_out);
+        Print_fps(text, delta_time, str, file_out);
 
-        Show_Picture_in_Window(window, text, pointmap);
+        #ifndef TESTING_MODE
+        Show_picture_in_window(window, text, pix_arr, sprite, texture);
+        #endif
     }
     fclose(file_out);
-    printf("end");
 }
 
-char* Set_Text_Format(sf::Text &text, sf::Font &font)
+char* Set_text_format(sf::Text &text, sf::Font &font)
 {
     font.loadFromFile("Tranrbi.ttf");
     text.setFont(font);
@@ -79,11 +93,14 @@ void Calculate_iters(float x_0, float y_0, int* iter, float scale, float shift_x
         for (int i = 0; i < 4; i++)
         {
             if(RADIUS >= x2[i] + y2[i])
+            {
                 iter[i]++;
                 flag++;
+            }
         }
 
         if(!flag) break;
+
 
         float temp[4] = {x_n[0], x_n[1], x_n[2], x_n[3]};
         for (int i = 0; i < 4; i++) x_n[i] = x2[i] - y2[i] + arr_x_0[i];
@@ -92,26 +109,68 @@ void Calculate_iters(float x_0, float y_0, int* iter, float scale, float shift_x
     }
 }
 
-void Check_Keyboard(sf::RenderWindow &window , float* shift_x, float* shift_y, float* scale)
+void Check_keyboard(sf::RenderWindow &window , float* shift_x, float* shift_y, float* scale)
 {
     sf::Event event;
     while (window.pollEvent(event))
     {
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left ))  *shift_x += 10;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up   ))  *shift_y += 10;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down ))  *shift_y -= 10;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))  *shift_x -= 10;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left ))
+        {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift ))
+                *shift_x += 20;
+            else
+                *shift_x += 10;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up   ))
+        {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift ))
+                *shift_y += 20;
+            else
+                *shift_y += 10;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down ))
+        {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift ))
+                *shift_y -= 20;
+            else
+                *shift_y -= 10;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+        {
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift ))
+                *shift_x -= 20;
+            else
+                *shift_x -= 10;
+        }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))
         {
-            *scale   *= 1.2;
-            *shift_x *= 1.2;
-            *shift_y *= 1.2;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift ))
+            {
+                *scale   *= 2.4;
+                *shift_x *= 2.4;
+                *shift_y *= 2.4;
+            }
+            else
+            {
+                *scale   *= 1.2;
+                *shift_x *= 1.2;
+                *shift_y *= 1.2;
+            }
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Dash ))
         {
-            *scale   /= 1.2;
-            *shift_x /= 1.2;
-            *shift_y /= 1.2;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift ))
+            {
+                *scale   /= 2.4;
+                *shift_x /= 2.4;
+                *shift_y /= 2.4;
+            }
+            else
+            {
+                *scale   /= 1.2;
+                *shift_x /= 1.2;
+                *shift_y /= 1.2;
+            }
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) window.close();
         if (event.type == sf::Event::Closed)
@@ -122,7 +181,7 @@ void Check_Keyboard(sf::RenderWindow &window , float* shift_x, float* shift_y, f
     }
 }
 
-void Set_Mandelbrot_Pixel_Arr(sf::VertexArray &pointmap, float x_center, float y_center, float scale, float shift_x, float shift_y)
+void Set_mandelbrot_pixel_arr(unsigned int* pix_arr, float x_center, float y_center, float scale, float shift_x, float shift_y)
 {
     for (int point_number_y = 0; point_number_y < HEIGHT; point_number_y++)
     {
@@ -134,34 +193,37 @@ void Set_Mandelbrot_Pixel_Arr(sf::VertexArray &pointmap, float x_center, float y
             int iter[4] = {0, 0, 0, 0};
             Calculate_iters(x_0, y_0, iter, scale, shift_x, shift_y);
 
+            #ifndef TESTING_MODE
             for (int i = 0; i < 4; i++)
             {
                 int pixel_index = point_number_x + WIDTH * point_number_y + i;
-                pointmap[pixel_index].position  = sf::Vector2f(point_number_x + i, point_number_y);
 
                 if(iter[i] < 256)
-                    pointmap[pixel_index].color = sf::Color(iter[i], iter[i] % 8 * 32, 255 - iter[i]);
+                    pix_arr[pixel_index] = iter[i] | ((iter[i] % 8 * 32) << 8) | ((255 - iter[i]) << 16) | (255 << 24);
                 else
-                    pointmap[pixel_index].color = sf::Color::Black;
+                    pix_arr[pixel_index] = (255 << 24);
             }
-
+            #endif
         }
     }
 }
 
-void Print_FPS(sf::Text &text, float delta_time, char* str, FILE* file)
+void Print_fps(sf::Text &text, float delta_time, char* str, FILE* file)
 {
-    //float delta_time = clock.restart().asSeconds();
     float fps = 1 / delta_time;
+    #ifndef TESTING_MODE
     sprintf(str, "fps: %f", fps);
-    fprintf(file, "%f\n", fps);
     text.setString(str);
+    #else
+    fprintf(file, "%f\n", fps);
+    #endif
 }
 
-void Show_Picture_in_Window(sf::RenderWindow &window, sf::Text &text, sf::VertexArray &pointmap)
+void Show_picture_in_window(sf::RenderWindow &window, sf::Text &text, unsigned int* pix_arr, sf::Sprite &sprite, sf::Texture &texture)
 {
     window.clear(sf::Color::Black);
-    window.draw(pointmap);
+    texture.update((uint8_t*) pix_arr);
+    window.draw(sprite);
     window.draw(text);
     window.display();
 }
